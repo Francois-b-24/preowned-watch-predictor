@@ -17,7 +17,7 @@ import sqlite3
 
 
 def create_database():
-    conn = sqlite3.connect('/Users/f.b/Desktop/Data_Science/watch_market/watch_price_prediction/data/raw/montre.db')
+    conn = sqlite3.connect('/Users/f.b/Desktop/Data_Science/preowned-watch-predictor/data/raw/montre.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS montre
                  (id INTEGER PRIMARY KEY, 
@@ -49,7 +49,7 @@ create_database()
 
 
 def insert_data(marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup):
-    conn = sqlite3.connect('/Users/f.b/Desktop/Data_Science/watch_market/watch_price_prediction/data/raw/montre.db')
+    conn = sqlite3.connect('/Users/f.b/Desktop/Data_Science/preowned-watch-predictor/data/raw/montre.db')
     c = conn.cursor()
     c.execute("INSERT INTO montre (marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 
               (marque, modele, mouvement,matiere_boitier, matiere_bracelet, annee_prod,  etat, sexe, prix, reserve_de_marche, diametre, etencheite, matiere_lunette, matiere_verre, boucle, matiere_boucle, rouage, ville, fonctions, Date_recup))
