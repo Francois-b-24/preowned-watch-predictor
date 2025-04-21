@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+scikit-learn
+category_encoders
+shap
+optuna
+joblib
+openpyxl
