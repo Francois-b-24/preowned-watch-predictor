@@ -1,0 +1,28 @@
+data:
+  processed_path: "data/processed/propre.xlsx"
+model:
+  filename: "final_pipeline.joblib"
+features:
+  columns:
+    - marque
+    - modele
+    - segment_prix
+    - matiere_boitier
+    - matiere_bracelet
+    - reserve_de_marche
+    - diametre
+    - etencheite
+    - comptage_fonctions
+preprocess:
+  material_categories:
+    - ["acier", "or/acier", "or massif"]
+    - ["acier", "or/acier", "or massif"]
+training:
+  random_state: 42
+  test_size: 0.2
+  cv_splits: 5
+  optuna_trials: 30
+mlflow:
+  enabled: false        # passer à true pour activer MLflow
+  tracking_uri: null    # ex: "file:./mlruns" ou http(s)://...
+  experiment: "watch-price"
