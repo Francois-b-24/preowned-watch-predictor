@@ -12,23 +12,36 @@ Ce projet fournit un pipeline complet de Machine Learning pour estimer le **prix
 
 ## 📁 Structure du projet
 ```
+preowned-watch-predictor/
+├── config/
+│   └── params.yaml                 # Chemins, features, CV, Optuna, MLflow (désactivé par défaut)
 ├── data/
-│   ├── raw/               # Données brutes collectées
-│   └── processed/         # Données prêtes à l’usage (propre.xlsx)
-├── models/                # Modèle entraîné (final_pipeline.joblib)
-├── reports/               # Graphiques générés (SHAP, learning curves)
+│   ├── raw/                        # Données brutes (NE PAS versionner)
+│   └── processed/                  # Données prêtes (ex: propre.xlsx — NE PAS versionner)
+├── models/
+│   └── final_pipeline.joblib       # Modèle entraîné (NE PAS versionner)
+├── reports/
+│   ├── personas.md                 # Personas (généré)
+│   ├── segment_counts.csv          # Comptes par segment (généré)
+│   ├── segment_price_stats.csv     # Stats par segment (généré)
+│   ├── segment_price_boxplot.png   # Boxplot prix par segment (généré)
+│   ├── model_comparison.csv        # Comparaison R² CV des modèles (généré)
+│   ├── shap_top10.png              # Importances SHAP si HGB (généré)
+│   └── learning_curve.png          # Courbe d’apprentissage (généré)
 ├── src/
-│   ├── data_utils.py      # Fonctions de chargement et segmentation
-│   ├── preprocess.py      # build_preprocessor()
-│   ├── models.py          # Étapes 1 à 12 du pipeline
-│   └── run_pipeline.py    # Script principal d’exécution
-├── app/                   # (Optionnel) Micro‑service FastAPI
-│   ├── main.py
-│   └── Dockerfile
-├── requirements.txt       # Dépendances Python
-├── Dockerfile             # Containerisation du service
-├── .gitignore
-└── README.md
+│   ├── bootstrap.py                # Script qui génère les fichiers manquants (déjà en place)
+│   ├── run_pipeline.py             # Point d’entrée : analyse + comparaison modèles + sauvegarde
+│   ├── data_utils.py               # load_data(), segment_prix(), get_feature_matrix()
+│   ├── preprocess.py               # build_preprocessor()
+│   ├── training.py                 # CV, tuning (Grid/Optuna), sélection & sauvegarde du meilleur
+│   └── interpret.py                # Personas, segments, SHAP, learning curves
+├── tests/
+│   ├── test_data_utils.py          # Test de fumée sur chargement/features
+│   └── test_training.py            # Test de fumée sur l’évaluation des modèles
+├── Makefile                        # Raccourcis: make train / test / mlflow-ui / clean
+├── pyproject.toml                  # Dépendances + config pytest/black/ruff
+├── .gitignore                      # À créer/compléter (ci-dessous)
+└── README.md                       # Présentation, usage, résultats (à compléter)
 ```
 
 ## 🛠️ Installation
@@ -74,6 +87,7 @@ python src/run_pipeline.py
 
 ## 📄 Licence
 Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
+
 
 
 
