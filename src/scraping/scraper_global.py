@@ -92,7 +92,7 @@ def recuperation_donnees(lien, nb_page=0):
     time.sleep(5)
     
     # Cliquer sur le menu déroulant des différentes catégories 
-    driver.find_elements(By.CLASS_NAME, 'js-carousel-cell')[0].click()
+    driver.find_elements(By.CLASS_NAME, 'js-header-flyout-toggle')[0].click()
 
     time.sleep(5)
     
