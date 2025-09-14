@@ -55,16 +55,17 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 ---
 ## 🛠️ Installation
 1. **Cloner le dépôt**
-   ```bash
+```bash
    git clone https://github.com/<utilisateur>/luxury-watch-price-predictor.git
    cd luxury-watch-price-predictor
+```
 
 2. **Créer un environnement virtuel et installer**
-   ```bash
+```bash
   python3 -m venv venv
   source venv/bin/activate
   pip install -r requirements.txt
-   ```
+```
 
 3. **Préparer les données**
    - Placer `propre.xlsx` dans `data/processed/`
@@ -76,9 +77,8 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 Recommandé (depuis la racine) :
 ```bash
 python -m src.run_pipeline
-# ou
-make train
 ```
+
 Cela entraîne les modèles, compare les performances (CV), et sauvegarde le meilleur pipeline dans models/final_pipeline.joblib.
 
 ## 🔧 Dépannage rapide
@@ -98,8 +98,6 @@ Cela entraîne les modèles, compare les performances (CV), et sauvegarde le mei
 Depuis la racine du projet :
 ```bash
 streamlit run src/streamlit_app.py
- ou
-make app
 ```
 
 Fonctionnement : choisissez une marque puis renseignez les autres caractéristiques (matières, réserve de marche, diamètre, étanchéité, nombre de fonctions). L’application retourne le prix estimé.
