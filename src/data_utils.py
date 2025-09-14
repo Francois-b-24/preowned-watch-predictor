@@ -14,7 +14,7 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
 RANDOM_STATE = CFG["training"]["random_state"]
 
 
-def segment_prix(prix: float) -> float:
+def segment_prix(prix: float) -> str:
     if prix < 5000:
         return "Entrée de gamme"
     if prix <= 20000:

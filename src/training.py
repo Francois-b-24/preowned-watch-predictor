@@ -5,8 +5,9 @@ import pandas as pd
 import yaml
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import KFold, cross_validate, GridSearchCV, train_test_split
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import optuna
 import joblib
@@ -76,6 +77,54 @@ def evaluate_models(X_train, y_train) -> tuple[pd.DataFrame, dict]:
     ridge_best = grid.best_estimator_
     res = _evaluate_with_cv(ridge_best, X_train, y_train, cv)
     results.append({"Model": "Ridge", **res}); models["Ridge"] = ridge_best
+
+    # Lasso (grid)
+    lasso = Pipeline([("pre", pre), ("lasso", Lasso(max_iter=10000, random_state=RANDOM_STATE))])
+    grid = GridSearchCV(lasso, {"lasso__alpha": [1e-3, 1e-2, 1e-1, 1, 10]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    lasso_best = grid.best_estimator_
+    res = _evaluate_with_cv(lasso_best, X_train, y_train, cv)
+    results.append({"Model": "Lasso", **res}); models["Lasso"] = lasso_best
+
+    # ElasticNet (grid)
+    enet = Pipeline([("pre", pre), ("enet", ElasticNet(max_iter=10000, random_state=RANDOM_STATE))])
+    grid = GridSearchCV(enet, {"enet__alpha": [1e-3, 1e-2, 1e-1, 1], "enet__l1_ratio": [0.2, 0.5, 0.8]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    enet_best = grid.best_estimator_
+    res = _evaluate_with_cv(enet_best, X_train, y_train, cv)
+    results.append({"Model": "ElasticNet", **res}); models["ElasticNet"] = enet_best
+
+    # RandomForest (grid léger)
+    rf = Pipeline([("pre", pre), ("rf", RandomForestRegressor(random_state=RANDOM_STATE, n_jobs=-1))])
+    grid = GridSearchCV(rf, {"rf__n_estimators": [200, 400], "rf__max_depth": [None, 10, 20], "rf__min_samples_leaf": [1, 3, 5]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    rf_best = grid.best_estimator_
+    res = _evaluate_with_cv(rf_best, X_train, y_train, cv)
+    results.append({"Model": "RandomForest", **res}); models["RandomForest"] = rf_best
+
+    # ExtraTrees (grid léger)
+    et = Pipeline([("pre", pre), ("et", ExtraTreesRegressor(random_state=RANDOM_STATE, n_jobs=-1))])
+    grid = GridSearchCV(et, {"et__n_estimators": [300, 600], "et__max_depth": [None, 15, 30], "et__min_samples_leaf": [1, 2, 4]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    et_best = grid.best_estimator_
+    res = _evaluate_with_cv(et_best, X_train, y_train, cv)
+    results.append({"Model": "ExtraTrees", **res}); models["ExtraTrees"] = et_best
+
+    # GradientBoosting (grid)
+    gbr = Pipeline([("pre", pre), ("gbr", GradientBoostingRegressor(random_state=RANDOM_STATE))])
+    grid = GridSearchCV(gbr, {"gbr__n_estimators": [200, 400], "gbr__learning_rate": [0.03, 0.1, 0.2], "gbr__max_depth": [2, 3, 4]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    gbr_best = grid.best_estimator_
+    res = _evaluate_with_cv(gbr_best, X_train, y_train, cv)
+    results.append({"Model": "GradientBoosting", **res}); models["GradientBoosting"] = gbr_best
+
+    # KNN Regressor (grid)
+    knn = Pipeline([("pre", pre), ("knn", KNeighborsRegressor())])
+    grid = GridSearchCV(knn, {"knn__n_neighbors": [3, 5, 11, 21], "knn__weights": ["uniform", "distance"]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    knn_best = grid.best_estimator_
+    res = _evaluate_with_cv(knn_best, X_train, y_train, cv)
+    results.append({"Model": "KNeighbors", **res}); models["KNeighbors"] = knn_best
 
     # HGB (Optuna)
     def objective(trial: optuna.Trial) -> float:

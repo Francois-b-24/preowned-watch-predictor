@@ -98,8 +98,9 @@ import pandas as pd
 import yaml
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import KFold, cross_validate, GridSearchCV, train_test_split
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import optuna
 import joblib
@@ -169,6 +170,54 @@ def evaluate_models(X_train, y_train) -> tuple[pd.DataFrame, dict]:
     ridge_best = grid.best_estimator_
     res = _evaluate_with_cv(ridge_best, X_train, y_train, cv)
     results.append({"Model": "Ridge", **res}); models["Ridge"] = ridge_best
+
+    # Lasso (grid)
+    lasso = Pipeline([("pre", pre), ("lasso", Lasso(max_iter=10000, random_state=RANDOM_STATE))])
+    grid = GridSearchCV(lasso, {"lasso__alpha": [1e-3, 1e-2, 1e-1, 1, 10]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    lasso_best = grid.best_estimator_
+    res = _evaluate_with_cv(lasso_best, X_train, y_train, cv)
+    results.append({"Model": "Lasso", **res}); models["Lasso"] = lasso_best
+
+    # ElasticNet (grid)
+    enet = Pipeline([("pre", pre), ("enet", ElasticNet(max_iter=10000, random_state=RANDOM_STATE))])
+    grid = GridSearchCV(enet, {"enet__alpha": [1e-3, 1e-2, 1e-1, 1], "enet__l1_ratio": [0.2, 0.5, 0.8]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    enet_best = grid.best_estimator_
+    res = _evaluate_with_cv(enet_best, X_train, y_train, cv)
+    results.append({"Model": "ElasticNet", **res}); models["ElasticNet"] = enet_best
+
+    # RandomForest (grid léger)
+    rf = Pipeline([("pre", pre), ("rf", RandomForestRegressor(random_state=RANDOM_STATE, n_jobs=-1))])
+    grid = GridSearchCV(rf, {"rf__n_estimators": [200, 400], "rf__max_depth": [None, 10, 20], "rf__min_samples_leaf": [1, 3, 5]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    rf_best = grid.best_estimator_
+    res = _evaluate_with_cv(rf_best, X_train, y_train, cv)
+    results.append({"Model": "RandomForest", **res}); models["RandomForest"] = rf_best
+
+    # ExtraTrees (grid léger)
+    et = Pipeline([("pre", pre), ("et", ExtraTreesRegressor(random_state=RANDOM_STATE, n_jobs=-1))])
+    grid = GridSearchCV(et, {"et__n_estimators": [300, 600], "et__max_depth": [None, 15, 30], "et__min_samples_leaf": [1, 2, 4]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    et_best = grid.best_estimator_
+    res = _evaluate_with_cv(et_best, X_train, y_train, cv)
+    results.append({"Model": "ExtraTrees", **res}); models["ExtraTrees"] = et_best
+
+    # GradientBoosting (grid)
+    gbr = Pipeline([("pre", pre), ("gbr", GradientBoostingRegressor(random_state=RANDOM_STATE))])
+    grid = GridSearchCV(gbr, {"gbr__n_estimators": [200, 400], "gbr__learning_rate": [0.03, 0.1, 0.2], "gbr__max_depth": [2, 3, 4]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    gbr_best = grid.best_estimator_
+    res = _evaluate_with_cv(gbr_best, X_train, y_train, cv)
+    results.append({"Model": "GradientBoosting", **res}); models["GradientBoosting"] = gbr_best
+
+    # KNN Regressor (grid)
+    knn = Pipeline([("pre", pre), ("knn", KNeighborsRegressor())])
+    grid = GridSearchCV(knn, {"knn__n_neighbors": [3, 5, 11, 21], "knn__weights": ["uniform", "distance"]}, cv=cv, scoring="r2", n_jobs=-1)
+    grid.fit(X_train, y_train)
+    knn_best = grid.best_estimator_
+    res = _evaluate_with_cv(knn_best, X_train, y_train, cv)
+    results.append({"Model": "KNeighbors", **res}); models["KNeighbors"] = knn_best
 
     # HGB (Optuna)
     def objective(trial: optuna.Trial) -> float:
@@ -433,7 +482,7 @@ mlflow:
 """
 
 MAKEFILE = """\
-.PHONY: train clean test mlflow-ui
+.PHONY: train clean test mlflow-ui app
 
 train:
 	python src/run_pipeline.py
@@ -449,6 +498,10 @@ test:
 # Launch local MLflow UI (uses MLFLOW_BACKEND or defaults to ./mlruns)
 mlflow-ui:
 	mlflow ui --backend-store-uri $${MLFLOW_BACKEND:-mlruns}
+
+# Launch the Streamlit app
+app:
+	streamlit run src/streamlit_app.py
 """
 
 PYPROJECT_TOML = """\
@@ -469,6 +522,8 @@ dependencies = [
   "matplotlib",
   "pyyaml",
   "mlflow",
+  "streamlit",
+  "openpyxl"
 ]
 
 [tool.pytest.ini_options]
@@ -525,6 +580,128 @@ def test_evaluate_models_runs():
     assert isinstance(models, dict)
 """
 
+# --- Inference helpers ---
+INFERENCE = """\
+from __future__ import annotations
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import yaml
+import joblib
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+CFG = yaml.safe_load(open(BASE_DIR / "config" / "params.yaml", "r", encoding="utf-8"))
+MODELS_DIR = BASE_DIR / "models"
+MODEL_PATH = MODELS_DIR / CFG["model"]["filename"]
+
+_FEATURES = CFG["features"]["columns"]
+
+_model_cache = None
+
+def load_model():
+    global _model_cache
+    if _model_cache is None:
+        _model_cache = joblib.load(MODEL_PATH)
+    return _model_cache
+
+
+def ensure_feature_columns(df: pd.DataFrame) -> pd.DataFrame:
+    # Add any missing feature columns as NA/empty defaults to avoid KeyErrors
+    for col in _FEATURES:
+        if col not in df.columns:
+            df[col] = np.nan if col not in ("marque", "modele", "segment_prix", "matiere_boitier", "matiere_bracelet") else ""
+    return df[_FEATURES]
+
+
+def predict_prices(df_feats: pd.DataFrame) -> pd.DataFrame:
+    #Takes a DataFrame with feature columns and returns a DataFrame with predictions in euros.
+    model = load_model()
+    X = ensure_feature_columns(df_feats)
+    y_log = model.predict(X)
+    price = np.exp(y_log) - 1.0
+    out = df_feats.copy()
+    out["predicted_price"] = price
+    return out
+"""
+
+STREAMLIT_APP = """\
+from __future__ import annotations
+from pathlib import Path
+import io
+import numpy as np
+import pandas as pd
+import yaml
+import streamlit as st
+
+from .inference import predict_prices, ensure_feature_columns
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+CFG = yaml.safe_load(open(BASE_DIR / "config" / "params.yaml", "r", encoding="utf-8"))
+FEATURES = CFG["features"]["columns"]
+
+st.set_page_config(page_title="Watch Price Predictor", page_icon="⌚", layout="centered")
+st.title("⌚ Prévision de prix de montres d'occasion")
+st.caption("Modèle entraîné hors-ligne — fournissez des caractéristiques pour estimer le prix.")
+
+mode = st.sidebar.radio("Mode", ["Formulaire", "Fichier (CSV/Excel)"])
+
+SEG_OPTS = ["Entrée de gamme", "Moyen de gamme", "Haut de gamme"]
+
+if mode == "Fichier (CSV/Excel)":
+    up = st.file_uploader("Déposez un CSV ou un Excel contenant les colonnes features", type=["csv", "xlsx"])
+    if up is not None:
+        try:
+            if up.name.lower().endswith(".csv"):
+                df = pd.read_csv(up)
+            else:
+                df = pd.read_excel(up)
+        except Exception as e:
+            st.error(f"Erreur de lecture du fichier: {e}")
+            df = None
+        if df is not None:
+            missing = [c for c in FEATURES if c not in df.columns]
+            if missing:
+                st.warning("Colonnes manquantes ajoutées par défaut : " + ", ".join(missing))
+            preds = predict_prices(df)
+            st.success(f"Prédictions effectuées sur {len(preds)} ligne(s).")
+            st.dataframe(preds)
+            csv = preds.to_csv(index=False).encode("utf-8")
+            st.download_button("Télécharger les prédictions (CSV)", data=csv, file_name="watch_predictions.csv", mime="text/csv")
+else:
+    with st.form("price_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            marque = st.text_input("Marque", "Rolex")
+            modele = st.text_input("Modèle", "Submariner")
+            segment_prix = st.selectbox("Segment de prix (estimé)", SEG_OPTS)
+            matiere_boitier = st.text_input("Matière boîtier", "acier")
+            matiere_bracelet = st.text_input("Matière bracelet", "acier")
+        with col2:
+            reserve_de_marche = st.number_input("Réserve de marche (h)", min_value=0.0, value=48.0, step=1.0)
+            diametre = st.number_input("Diamètre (mm)", min_value=0.0, value=40.0, step=0.5)
+            etencheite = st.number_input("Étanchéité (m)", min_value=0.0, value=100.0, step=10.0)
+            comptage_fonctions = st.number_input("# Complications/fonctions", min_value=0, value=1, step=1)
+        submitted = st.form_submit_button("Estimer le prix")
+    if submitted:
+        row = {
+            "marque": marque,
+            "modele": modele,
+            "segment_prix": segment_prix,
+            "matiere_boitier": matiere_boitier,
+            "matiere_bracelet": matiere_bracelet,
+            "reserve_de_marche": reserve_de_marche,
+            "diametre": diametre,
+            "etencheite": etencheite,
+            "comptage_fonctions": comptage_fonctions,
+        }
+        df = pd.DataFrame([row])
+        pred = predict_prices(df)
+        price = float(pred.loc[0, "predicted_price"])
+        st.subheader("Prix estimé")
+        st.metric("€", f"{price:,.0f}".replace(",", " "))
+        st.caption("Note : estimation ponctuelle. Ajouter un intervalle d'incertitude au besoin.")
+"""
+
 
 # --- Bootstrap ---
 def write_file(path: Path, content: str):
@@ -548,10 +725,13 @@ def main():
     write_file(BASE_DIR / "pyproject.toml", PYPROJECT_TOML)
     write_file(BASE_DIR / "tests" / "test_data_utils.py", TEST_DATA_UTILS)
     write_file(BASE_DIR / "tests" / "test_training.py", TEST_TRAINING)
+    write_file(SRC_DIR / "inference.py", INFERENCE)
+    write_file(SRC_DIR / "streamlit_app.py", STREAMLIT_APP)
 
-    print("\n✅ Bootstrap terminé. Prochaine étape :")
+    print("\n✅ Bootstrap terminé. Prochaines étapes :")
     print("   1) Vérifier/éditer config/params.yaml si besoin")
     print("   2) Lancer l'entraînement :  make train   (ou  python src/run_pipeline.py)")
+    print("   3) Lancer l'application :  make app     (ou  streamlit run src/streamlit_app.py)")
 
 
 if __name__ == "__main__":
