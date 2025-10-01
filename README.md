@@ -12,7 +12,7 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 - Interprétabilité (SHAP)
 - Validation croisée, courbe d’apprentissage
 - Sauvegarde du pipeline final (`models/final_pipeline.joblib`)
-- **Application Streamlit** (sans upload de fichier, **sans segment de prix**, **sans sélection du modèle** de montre)
+- **Application Streamlit** 
 
 ---
 
@@ -27,13 +27,13 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 │   ├── final_pipeline.joblib       # Modèle entraîné (NE PAS versionner)
 │   └── estimator.py                # Variante de l’app Streamlit (équivalente à src/streamlit_app.py)
 ├── reports/
-│   ├── personas.md                 # Généré
-│   ├── segment_counts.csv          # Généré
-│   ├── segment_price_stats.csv     # Généré
-│   ├── segment_price_boxplot.png   # Généré
-│   ├── model_comparison.csv        # Généré
-│   ├── shap_top10.png              # Généré
-│   └── learning_curve.png          # Généré
+│   ├── personas.md                 
+│   ├── segment_counts.csv          
+│   ├── segment_price_stats.csv     
+│   ├── segment_price_boxplot.png   
+│   ├── model_comparison.csv        
+│   ├── shap_top10.png              
+│   └── learning_curve.png          
 ├── src/
 │   ├── bootstrap.py                # Génère les fichiers manquants
 │   ├── run_pipeline.py             # Exécution : analyse + comparaison modèles + sauvegarde
@@ -101,9 +101,6 @@ streamlit run src/streamlit_app.py
 ```
 
 Fonctionnement : choisissez une marque puis renseignez les autres caractéristiques (matières, réserve de marche, diamètre, étanchéité, nombre de fonctions). L’application retourne le prix estimé.
-
-Remarques : l’app n’utilise pas de fichier CSV/Excel; elle ne demande ni segment de prix ni modèle de montre. Si ces features existent encore dans params.yaml, elles sont neutralisées côté inférence.
-
 ⸻
 
 ## 📦 Déploiement API (optionnel)
@@ -121,6 +118,7 @@ Alternative à Streamlit si vous souhaitez un endpoint. Voir un éventuel src/ap
 
 ## 📄 Licence
 Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
+
 
 
 
