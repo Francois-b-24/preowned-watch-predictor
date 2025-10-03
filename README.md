@@ -55,7 +55,7 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 └── README.md
 ```
 
-⸻
+---
 
 ## 🛠️ Installation avec Poetry
 1. **Cloner le dépôt**
@@ -79,10 +79,10 @@ poetry install
 ```
 
 3.	Préparer les données
-	•	Placer propre.xlsx dans data/processed/
-	•	Le fichier doit contenir au minimum : prix, marque, modele, ainsi que les features définies dans config/params.yaml.
+	- Placer propre.xlsx dans data/processed/
+	- Le fichier doit contenir au minimum : prix, marque, modele, ainsi que les features définies dans config/params.yaml.
 
-⸻
+---
 
 ## ▶️ Exécuter le pipeline ML
 Depuis la racine :
@@ -107,7 +107,7 @@ Le pipeline :
 	•	entraîne et sauvegarde le pipeline (models/final_pipeline.joblib),
 	•	calibre un intervalle de confiance (split-conformal).
 
-⸻
+---
 
 ## ▶️ Lancer l’application Streamlit
 
@@ -119,8 +119,8 @@ poetry run streamlit run src/streamlit_app.py
 ou 
 
 Fonctionnement : choisissez une marque puis renseignez les autres caractéristiques (matières, réserve de marche, diamètre, étanchéité, nombre de fonctions). L’application retourne le prix estimé.
-⸻
 
+---
 
 ## 🧪 Tests
 
@@ -130,8 +130,7 @@ poetry run pytest
 poetry run pytest --cov
 ```
 
-⸻
-
+---
 
 ## 🔧 Dépannage rapide
 	•	ModuleNotFoundError: No module named ‘src’ : lancez toujours avec poetry run ... depuis la racine.
@@ -139,7 +138,7 @@ poetry run pytest --cov
 	•	UI vide en mode “Basées sur la base de données” : vérifiez que data/processed/propre.xlsx existe et contient les colonnes attendues (voir diagnostic dans l’app).
 	•	Pas d’intervalle affiché : relancez run_pipeline pour recalculer models/conformal_q.npy.
 
-⸻
+---
 
 ## 🤝 Contribuer
 	1.	Forker le dépôt
@@ -147,7 +146,7 @@ poetry run pytest --cov
 	3.	Commit & Push
 	4.	Ouvrir un Pull Request
 
-⸻
+---
 
 ## 📄 Licence
 Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
