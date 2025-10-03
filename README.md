@@ -15,12 +15,7 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 - Calibration conformale (intervalle de prédiction en euros)
 - Interprétation simple (segments prix, boxplots)
 - Sauvegarde du pipeline final (`models/final_pipeline.joblib`)
-- **Application Streamlit** avec listes déroulantes et curseurs (valeurs basées sur la base ou forcées par YAML)
-- Tests de base (`tests/`)
-
----
-
-## 📁 Structure du projet
+- **Application Streamlit** 
 
 ---
 
@@ -31,9 +26,16 @@ Ce projet fournit **un pipeline complet de Machine Learning** pour estimer le pr
 ├── data/
 │   └── processed/propre.xlsx       # Données prêtes (non versionnées)
 ├── models/
-│   ├── final_pipeline.joblib       # Modèle entraîné
-│   └── conformal_q.npy             # Quantile d’erreur pour intervalle de confiance
-├── reports/                        # Rapports (comparaison modèles, boxplots…)
+│   ├── final_pipeline.joblib       # Modèle entraîné (NE PAS versionner)
+│   └── estimator.py                # Variante de l’app Streamlit (équivalente à src/streamlit_app.py)
+├── reports/
+│   ├── personas.md                 
+│   ├── segment_counts.csv          
+│   ├── segment_price_stats.csv     
+│   ├── segment_price_boxplot.png   
+│   ├── model_comparison.csv        
+│   ├── shap_top10.png              
+│   └── learning_curve.png          
 ├── src/
 │   ├── init.py
 │   ├── bootstrap.py                # Génère/écrit les fichiers du projet
@@ -116,17 +118,7 @@ poetry run streamlit run src/streamlit_app.py
 ```
 ou 
 
-```bash
-poetry run make app
-```
-⸻
-
-Fonctionnement :
-	•	Choisissez “Basées sur la base de données” pour que les listes (marques, modèles, matières) et les curseurs soient construits automatiquement (top-K valeurs, quantiles 1–99 %).
-	•	Ou choisissez “Forcer les valeurs du YAML” pour utiliser les valeurs définies dans config/params.yaml.
-	•	La liste des modèles se filtre dynamiquement selon la marque choisie.
-	•	Bloc 🔎 Diagnostic des données intégré pour afficher lignes/colonnes détectées.
-
+Fonctionnement : choisissez une marque puis renseignez les autres caractéristiques (matières, réserve de marche, diamètre, étanchéité, nombre de fonctions). L’application retourne le prix estimé.
 ⸻
 
 
@@ -159,6 +151,7 @@ poetry run pytest --cov
 
 ## 📄 Licence
 Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
+
 
 
 
