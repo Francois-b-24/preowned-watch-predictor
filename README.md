@@ -102,10 +102,10 @@ poetry run make train
 ```
 
 Le pipeline :
-	- compare plusieurs modèles avec validation croisée,
-	- sélectionne le meilleur,
-	- entraîne et sauvegarde le pipeline (models/final_pipeline.joblib),
-	- calibre un intervalle de confiance (split-conformal).
+- compare plusieurs modèles avec validation croisée,
+- sélectionne le meilleur,
+- entraîne et sauvegarde le pipeline (models/final_pipeline.joblib),
+- calibre un intervalle de confiance (split-conformal).
 
 ---
 
