@@ -13,3 +13,6 @@ def test_load_and_features():
     X, y = get_feature_matrix(df)
     assert len(X) == len(y)
     assert X.shape[0] > 0
+    # segment_prix présent pour l'analyse, mais exclu des features du modèle (anti-fuite)
+    assert "segment_prix" in df.columns
+    assert "segment_prix" not in X.columns

@@ -1,6 +1,5 @@
 from __future__ import annotations
 from pathlib import Path
-import os
 import pandas as pd
 import numpy as np
 import yaml
@@ -26,13 +25,13 @@ def load_data() -> pd.DataFrame:
     path = BASE_DIR / CFG["data"]["processed_path"]
     df = pd.read_excel(path)
     df = df.dropna(subset=["prix", "marque", "modele"])  # colonnes indispensables
-    df["segment_prix"] = df["prix"].apply(segment_prix)
+    df["segment_prix"] = df["prix"].apply(segment_prix)  # analyse/rapports uniquement
     df["log_prix"] = np.log(df["prix"] + 1)
     return df
 
 
 def get_feature_matrix(df: pd.DataFrame):
-    feats = CFG["features"]["columns"]
+    feats = CFG["features"]["columns"]  # 'segment_prix' exclu des features (anti-fuite)
     X = df[feats]
     y = df["log_prix"]
     return X, y

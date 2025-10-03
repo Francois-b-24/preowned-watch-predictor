@@ -16,7 +16,7 @@ def build_preprocessor() -> ColumnTransformer:
     return ColumnTransformer([
         ("brand", OneHotEncoder(drop="first", handle_unknown="ignore", sparse_output=False), ["marque"]),
         ("model_te", Pipeline([("te", TargetEncoder(min_samples_leaf=50, smoothing=10))]), ["modele"]),
-        ("seg", OneHotEncoder(drop="first", handle_unknown="ignore", sparse_output=False), ["segment_prix"]),
+        # 'segment_prix' exclu pour éviter la fuite de cible
         ("mat", Pipeline([
             ("imp", SimpleImputer(strategy="constant", fill_value="")),
             ("ord", OrdinalEncoder(categories=material_cats, handle_unknown="use_encoded_value", unknown_value=-1))

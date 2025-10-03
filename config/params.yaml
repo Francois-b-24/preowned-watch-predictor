@@ -6,7 +6,7 @@ features:
   columns:
     - marque
     - modele
-    - segment_prix
+    # segment_prix exclu des features pour éviter la fuite de cible
     - matiere_boitier
     - matiere_bracelet
     - reserve_de_marche
@@ -17,12 +17,31 @@ preprocess:
   material_categories:
     - ["acier", "or/acier", "or massif"]
     - ["acier", "or/acier", "or massif"]
+feature_selection:
+  enabled: true
+  method: "lasso"
+  k: 20
+  lasso_alpha: 0.001
+  rf_n_estimators: 300
+  threshold: "median"
 training:
   random_state: 42
   test_size: 0.2
   cv_splits: 5
   optuna_trials: 30
 mlflow:
-  enabled: false        # passer à true pour activer MLflow
-  tracking_uri: null    # ex: "file:./mlruns" ou http(s)://...
+  enabled: false
+  tracking_uri: null
   experiment: "watch-price"
+
+# === Choix (categoriels) & Plages (numériques) pour l'UI Streamlit ===
+choices:
+  marque: ["Rolex", "Omega", "Patek Philippe", "Audemars Piguet", "Cartier", "TAG Heuer", "Breitling", "IWC"]
+  modele: ["Submariner", "Daytona", "Datejust", "Speedmaster", "Seamaster", "Royal Oak", "Santos", "Navitimer", "Carrera", "Portugieser"]
+  matiere_boitier: ["acier", "or/acier", "or massif"]
+  matiere_bracelet: ["acier", "or/acier", "or massif"]
+ranges:
+  reserve_de_marche: {min: 0, max: 120, step: 1}
+  diametre: {min: 30, max: 45, step: 1}
+  etencheite: {min: 0, max: 300, step: 10}
+  comptage_fonctions: {min: 0, max: 10, step: 1}

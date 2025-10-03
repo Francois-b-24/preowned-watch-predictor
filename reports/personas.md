@@ -1,1 +1,14 @@
-# PersonasRevendeur pro- **Objectif**: Estimer la valeur d'achat au plus juste (±5%)- **Usage**: Quotidien- **Sortie attendue**: Prix attendu + intervalle de confiance- **Canal**: API / WebParticulier- **Objectif**: Vérifier si une annonce est surpayée (±10%)- **Usage**: Ponctuel- **Sortie attendue**: Score de fair‑price + conseils- **Canal**: Mobile / WebPlateforme- **Objectif**: Détecter les annonces outliers (±20%)- **Usage**: Automatique- **Sortie attendue**: Flag outlier + explications- **Canal**: Dashboard
+# Personas
+
+
+## Revendeur pro
+
+- **Objectif**: Estimer la valeur d'achat au plus juste (±5%)
+
+## Particulier
+
+- **Objectif**: Vérifier si une annonce est surpayée (±10%)
+
+## Plateforme
+
+- **Objectif**: Détecter les annonces outliers (±20%)
